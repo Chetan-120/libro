@@ -1,6 +1,7 @@
-const express = require("express");
+﻿const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const path = require("path");
 
 const connectDB = require("./config/db");
 
@@ -61,6 +62,18 @@ app.use(
   }),
 );
 
+/*
+ * ============================================================
+ * PUBLIC UPLOADS
+ * ============================================================
+ *
+ * Serves uploaded book cover images stored in server/uploads.
+ */
+
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads")),
+);
 /*
  * ============================================================
  * API ROUTES
@@ -224,3 +237,5 @@ const shutdown = async (signal) => {
 process.on("SIGINT", () => shutdown("SIGINT"));
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));
+
+

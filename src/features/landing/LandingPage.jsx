@@ -1,4 +1,5 @@
-import React from 'react';
+﻿import React, { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   ArrowRight,
   BookOpen,
@@ -9,11 +10,113 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+function getCoverImageUrl(coverImage) {
+  if (!coverImage) return null;
+
+  const value = String(coverImage).trim();
+
+  if (!value) return null;
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  if (value.startsWith("/")) {
+    return `${API_URL}${value}`;
+  }
+
+  return `${API_URL}/${value}`;
+}
+
+function LandingBookCover({ book }) {
+  const [failed, setFailed] = useState(false);
+
+  const coverUrl = getCoverImageUrl(book?.coverImage);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [coverUrl]);
+
+  if (!coverUrl || failed) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-700 via-violet-700 to-slate-950">
+        <BookOpen className="h-7 w-7 text-white/40" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={coverUrl}
+      alt={book?.title || "Book cover"}
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
+      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+      onError={() => {
+        console.error("Landing page cover failed:", coverUrl);
+        setFailed(true);
+      }}
+    />
+  );
+}
 export function LandingPage() {
   const navigate = useNavigate();
+
+  const [books, setBooks] = useState([]);
+  const [loadingBooks, setLoadingBooks] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadBooks() {
+      try {
+        setLoadingBooks(true);
+
+        const response = await fetch(`${API_URL}/api/books/public`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data?.message || "Failed to load books");
+        }
+
+        const receivedBooks = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.books)
+            ? data.books
+            : Array.isArray(data?.data)
+              ? data.data
+              : [];
+
+        if (!cancelled) {
+          setBooks(receivedBooks);
+        }
+      } catch (error) {
+        console.error("Landing page books loading failed:", error);
+
+        if (!cancelled) {
+          setBooks([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingBooks(false);
+        }
+      }
+    }
+
+    loadBooks();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const featuredBooks = useMemo(() => books.slice(0, 4), [books]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f8f9fc] text-slate-950">
@@ -31,8 +134,8 @@ export function LandingPage() {
             <div className="mx-auto max-w-4xl text-center">
               {/* Eyebrow */}
               <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white px-3 py-1.5 text-[9px] font-semibold text-indigo-600 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
-                <Sparkles className="h-3 w-3" />
-                A smarter way to experience your library
+                <Sparkles className="h-3 w-3" />A smarter way to experience your
+                library
               </span>
 
               {/* Heading */}
@@ -46,15 +149,15 @@ export function LandingPage() {
               {/* Description */}
               <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-slate-500 sm:text-base">
                 Explore thousands of books, manage your loans, reserve titles,
-                and stay connected with your library — all from one beautifully
-                simple platform.
+                and stay connected with your library â€” all from one
+                beautifully simple platform.
               </p>
 
               {/* CTA */}
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                 <button
                   type="button"
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate("/register")}
                   className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 text-xs font-bold text-white shadow-[0_10px_25px_rgba(79,70,229,0.18)] transition-all hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-[0_12px_30px_rgba(79,70,229,0.22)]"
                 >
                   Start exploring
@@ -63,7 +166,7 @@ export function LandingPage() {
 
                 <button
                   type="button"
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate("/login")}
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-xs font-bold text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50/40 hover:text-indigo-700"
                 >
                   Sign in to library
@@ -77,9 +180,7 @@ export function LandingPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    window.dispatchEvent(
-                      new Event('libro:open-search')
-                    )
+                    window.dispatchEvent(new Event("libro:open-search"))
                   }
                   className="flex h-12 w-full items-center gap-3 rounded-xl bg-slate-50 px-4 text-left transition hover:bg-indigo-50/60"
                 >
@@ -90,7 +191,7 @@ export function LandingPage() {
                   </span>
 
                   <span className="hidden rounded-lg border border-slate-200 bg-white px-2 py-1 text-[8px] font-medium text-slate-400 sm:block">
-                    ⌘ K
+                    âŒ˜ K
                   </span>
                 </button>
 
@@ -180,10 +281,7 @@ export function LandingPage() {
         </section>
 
         {/* Collection */}
-        <section
-          id="collection"
-          className="bg-slate-950 py-20 sm:py-24"
-        >
+        <section id="collection" className="bg-slate-950 py-20 sm:py-24">
           <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
             <div className="grid items-center gap-12 lg:grid-cols-[0.8fr_1.2fr]">
               <div>
@@ -203,7 +301,7 @@ export function LandingPage() {
 
                 <button
                   type="button"
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate("/login")}
                   className="mt-7 inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-xs font-bold text-slate-950 transition-all hover:-translate-y-0.5 hover:bg-slate-100"
                 >
                   Explore collection
@@ -212,29 +310,80 @@ export function LandingPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <DarkBook
-                  title="Designing Data-Intensive Applications"
-                  author="Martin Kleppmann"
-                  color="from-rose-700 to-pink-500"
-                />
+                {loadingBooks ? (
+                  [1, 2, 3, 4].map((item) => (
+                    <div
+                      key={item}
+                      className="aspect-[2/3] animate-pulse rounded-2xl bg-white/10"
+                    />
+                  ))
+                ) : featuredBooks.length > 0 ? (
+                  featuredBooks.map((book, index) => (
+                    <motion.button
+                      key={book._id}
+                      type="button"
+                      onClick={() =>
+                        navigate(`/student/catalog/${book._id}`)
+                      }
+                      initial={{
+                        opacity: 0,
+                        y: 18,
+                      }}
+                      whileInView={{
+                        opacity: 1,
+                        y: 0,
+                      }}
+                      viewport={{
+                        once: true,
+                        amount: 0.2,
+                      }}
+                      transition={{
+                        duration: 0.5,
+                        delay: index * 0.08,
+                      }}
+                      whileHover={{
+                        y: -8,
+                      }}
+                      className="group text-left"
+                    >
+                      <div className="relative aspect-[2/3] overflow-hidden rounded-2xl bg-slate-800 shadow-[0_14px_35px_rgba(0,0,0,0.28)]">
+                        <LandingBookCover book={book} />
 
-                <DarkBook
-                  title="The Psychology of Money"
-                  author="Morgan Housel"
-                  color="from-violet-700 to-purple-500"
-                />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-                <DarkBook
-                  title="The Pragmatic Programmer"
-                  author="Andrew Hunt"
-                  color="from-blue-700 to-cyan-500"
-                />
+                        <div className="absolute bottom-2.5 left-2.5 right-2.5 translate-y-2 rounded-lg border border-white/20 bg-white/10 px-2.5 py-2 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                          <p className="line-clamp-1 text-[9px] font-bold text-white">
+                            View book
+                          </p>
+                        </div>
+                      </div>
 
-                <DarkBook
-                  title="Thinking, Fast and Slow"
-                  author="Daniel Kahneman"
-                  color="from-amber-600 to-orange-500"
-                />
+                      <div className="mt-3 px-0.5">
+                        <p className="line-clamp-2 text-[10px] font-bold leading-4 text-white">
+                          {book.title}
+                        </p>
+
+                        <p className="mt-1 line-clamp-1 text-[9px] text-slate-500">
+                          {book.author || "Unknown author"}
+                        </p>
+                      </div>
+                    </motion.button>
+                  ))
+                ) : (
+                  <div className="col-span-2 flex aspect-[2/3] items-center justify-center rounded-2xl bg-white/5 p-4 text-center sm:col-span-4">
+                    <div>
+                      <BookOpen className="mx-auto h-7 w-7 text-white/20" />
+
+                      <p className="mt-3 text-xs font-semibold text-white/60">
+                        Collection coming soon
+                      </p>
+
+                      <p className="mt-1 text-[9px] text-slate-500">
+                        Books added to Libro will appear here.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -269,7 +418,7 @@ export function LandingPage() {
 
               <button
                 type="button"
-                onClick={() => navigate('/register')}
+                onClick={() => navigate("/register")}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-xs font-bold text-indigo-700 shadow-lg transition-all hover:-translate-y-0.5 hover:bg-indigo-50"
               >
                 Create your account
@@ -318,13 +467,9 @@ function MiniBook({ title, author, color }) {
       </div>
 
       <div className="min-w-0">
-        <p className="truncate text-[10px] font-bold text-slate-800">
-          {title}
-        </p>
+        <p className="truncate text-[10px] font-bold text-slate-800">{title}</p>
 
-        <p className="mt-1 truncate text-[8px] text-slate-400">
-          {author}
-        </p>
+        <p className="mt-1 truncate text-[8px] text-slate-400">{author}</p>
 
         <div className="mt-1.5 flex items-center gap-1 text-[7px] text-amber-500">
           <Star className="h-2.5 w-2.5 fill-current" />
@@ -357,17 +502,12 @@ function Stat({ value, label }) {
 /* Feature Card                     */
 /* -------------------------------- */
 
-function FeatureCard({
-  icon: Icon,
-  title,
-  description,
-  tone,
-}) {
+function FeatureCard({ icon: Icon, title, description, tone }) {
   const tones = {
-    indigo: 'bg-indigo-50 text-indigo-600',
-    violet: 'bg-violet-50 text-violet-600',
-    amber: 'bg-amber-50 text-amber-600',
-    emerald: 'bg-emerald-50 text-emerald-600',
+    indigo: "bg-indigo-50 text-indigo-600",
+    violet: "bg-violet-50 text-violet-600",
+    amber: "bg-amber-50 text-amber-600",
+    emerald: "bg-emerald-50 text-emerald-600",
   };
 
   return (
@@ -378,13 +518,9 @@ function FeatureCard({
         <Icon className="h-4 w-4" />
       </span>
 
-      <h3 className="mt-5 text-sm font-bold text-slate-900">
-        {title}
-      </h3>
+      <h3 className="mt-5 text-sm font-bold text-slate-900">{title}</h3>
 
-      <p className="mt-2 text-[10px] leading-5 text-slate-400">
-        {description}
-      </p>
+      <p className="mt-2 text-[10px] leading-5 text-slate-400">{description}</p>
 
       <span className="mt-5 block h-px w-8 bg-slate-200 transition-all group-hover:w-12 group-hover:bg-indigo-400" />
     </article>
@@ -412,11 +548,12 @@ function DarkBook({ title, author, color }) {
             {title}
           </p>
 
-          <p className="mt-1 truncate text-[6px] text-white/50">
-            {author}
-          </p>
+          <p className="mt-1 truncate text-[6px] text-white/50">{author}</p>
         </div>
       </div>
     </div>
   );
 }
+
+
+

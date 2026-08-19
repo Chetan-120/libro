@@ -1,136 +1,165 @@
-import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import {
-  BarChart3,
-  Bell,
-  BookMarked,
-  BookOpen,
-  Home,
-  Settings,
-  User,
-  Users,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useAuth } from '@/hooks/useAuth';
+import React from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { NavLink, useLocation } from "react-router-dom";
+import { Bell, BookMarked, BookOpen, Home, User, Users } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+
+const ease = [0.22, 1, 0.36, 1];
 
 export function BottomNav() {
   const location = useLocation();
   const { role } = useAuth();
+  const shouldReduceMotion = useReducedMotion();
 
   const isAppArea =
-    location.pathname.startsWith('/student') ||
-    location.pathname.startsWith('/librarian') ||
-    location.pathname.startsWith('/notifications') ||
-    location.pathname.startsWith('/settings');
+    location.pathname.startsWith("/student") ||
+    location.pathname.startsWith("/librarian") ||
+    location.pathname.startsWith("/notifications") ||
+    location.pathname.startsWith("/settings");
 
   if (!isAppArea) return null;
 
-  const isLibrarian = role === 'librarian';
+  const isLibrarian = role === "librarian";
 
   const items = isLibrarian
     ? [
         {
-          label: 'Home',
+          label: "Home",
           icon: Home,
-          path: '/librarian/dashboard',
+          path: "/librarian/dashboard",
         },
         {
-          label: 'Books',
+          label: "Books",
           icon: BookOpen,
-          path: '/librarian/inventory',
+          path: "/librarian/inventory",
         },
         {
-          label: 'Students',
+          label: "Students",
           icon: Users,
-          path: '/librarian/students',
+          path: "/librarian/students",
         },
         {
-          label: 'Fines',
+          label: "Fines",
           icon: Bell,
-          path: '/librarian/fines',
+          path: "/librarian/fines",
         },
       ]
     : [
         {
-          label: 'Home',
+          label: "Home",
           icon: Home,
-          path: '/student/dashboard',
+          path: "/student/dashboard",
         },
         {
-          label: 'Browse',
+          label: "Browse",
           icon: BookOpen,
-          path: '/student/catalog',
+          path: "/student/catalog",
         },
         {
-          label: 'My Books',
+          label: "My Books",
           icon: BookMarked,
-          path: '/student/loans',
+          path: "/student/loans",
         },
         {
-          label: 'Profile',
+          label: "Profile",
           icon: User,
-          path: '/student/profile',
+          path: "/student/profile",
         },
       ];
+
+  const isItemActive = (path) => {
+    if (location.pathname === path) return true;
+
+    if (path === "/student/dashboard" || path === "/librarian/dashboard") {
+      return false;
+    }
+
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <nav
       className={[
-        'fixed inset-x-0 bottom-0 z-50 lg:hidden',
-        'border-t border-slate-200/80',
-        'bg-white/95 backdrop-blur-xl',
-        'pb-[env(safe-area-inset-bottom)]',
-        'shadow-[0_-8px_24px_rgba(15,23,42,0.06)]',
-      ].join(' ')}
+        "fixed inset-x-0 bottom-0 z-50 lg:hidden",
+        "border-t border-slate-200/70",
+        "bg-white/88 backdrop-blur-2xl",
+        "pb-[env(safe-area-inset-bottom)]",
+        "shadow-[0_-12px_35px_rgba(15,23,42,0.08)]",
+      ].join(" ")}
       aria-label="Mobile navigation"
     >
-      <div className="mx-auto grid h-16 max-w-lg grid-cols-4 px-2">
+      <div className="mx-auto grid h-[68px] max-w-lg grid-cols-4 px-2">
         {items.map((item) => {
           const Icon = item.icon;
-
-          const isActive =
-            location.pathname === item.path ||
-            (item.path !== '/student/dashboard' &&
-              item.path !== '/librarian/dashboard' &&
-              location.pathname.startsWith(item.path));
+          const isActive = isItemActive(item.path);
 
           return (
             <NavLink
               key={item.path}
               to={item.path}
-              className={cn(
-                'relative flex min-w-0 flex-col items-center justify-center gap-1',
-                'rounded-xl px-1 text-[10px] font-medium',
-                'transition-colors duration-150',
-                'focus:outline-none focus:ring-2 focus:ring-indigo-500/20',
-                isActive
-                  ? 'text-indigo-600'
-                  : 'text-slate-400 hover:text-slate-700'
-              )}
+              className="relative flex min-w-0 items-center justify-center"
             >
-              {isActive && (
-                <span className="absolute top-0 h-0.5 w-8 rounded-full bg-indigo-600" />
-              )}
-
-              <span
-                className={cn(
-                  'flex h-8 w-8 items-center justify-center rounded-xl',
-                  'transition-colors duration-150',
-                  isActive
-                    ? 'bg-indigo-50'
-                    : 'bg-transparent'
-                )}
+              <motion.div
+                className="relative flex h-14 w-full max-w-[82px] flex-col items-center justify-center gap-1 rounded-2xl"
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
+                transition={{
+                  duration: 0.18,
+                  ease,
+                }}
               >
-                <Icon
-                  className="h-[18px] w-[18px]"
-                  strokeWidth={isActive ? 2.2 : 1.8}
-                  aria-hidden="true"
-                />
-              </span>
+                {isActive && (
+                  <motion.span
+                    layoutId="mobile-nav-active"
+                    className="absolute inset-1 rounded-2xl bg-indigo-50"
+                    transition={{
+                      type: "spring",
+                      stiffness: 420,
+                      damping: 30,
+                    }}
+                  />
+                )}
 
-              <span className="max-w-full truncate">
-                {item.label}
-              </span>
+                <motion.span
+                  className={cn(
+                    "relative z-10 flex h-8 w-8 items-center justify-center rounded-xl",
+                    isActive ? "text-indigo-600" : "text-slate-400",
+                  )}
+                  animate={
+                    shouldReduceMotion
+                      ? undefined
+                      : {
+                          scale: isActive ? 1 : 0.96,
+                        }
+                  }
+                  transition={{
+                    duration: 0.22,
+                    ease,
+                  }}
+                >
+                  <Icon
+                    className="h-[19px] w-[19px]"
+                    strokeWidth={isActive ? 2.25 : 1.8}
+                  />
+
+                  {isActive && (
+                    <motion.span
+                      layoutId="mobile-nav-dot"
+                      className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-indigo-600 ring-2 ring-indigo-50"
+                    />
+                  )}
+                </motion.span>
+
+                <span
+                  className={cn(
+                    "relative z-10 max-w-full truncate px-1 text-[10px] font-semibold",
+                    isActive ? "text-indigo-700" : "text-slate-400",
+                  )}
+                >
+                  {item.label}
+                </span>
+              </motion.div>
             </NavLink>
           );
         })}

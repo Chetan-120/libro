@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -375,34 +375,10 @@ export function StudentDashboard() {
             </span>
           </div>
 
-          <motion.h2
-  initial={
-    shouldReduceMotion
-      ? false
-      : {
-          opacity: 0,
-          y: 10,
-        }
-  }
-  animate={{
-    opacity: 1,
-    y: 0,
-  }}
-  transition={{
-    duration: 0.65,
-    delay: 0.12,
-    ease,
-  }}
-  className="mt-4 max-w-[20rem] text-[27px] font-bold leading-[1.08] tracking-[-0.045em] sm:max-w-xl sm:text-4xl"
-  style={{ color: "#ffffff" }}
->
-  <span style={{ color: "#ffffff" }}>
-    Discover your next{" "}
-  </span>
-  <span className="bg-gradient-to-r from-indigo-200 via-violet-300 to-indigo-300 bg-clip-text text-transparent">
-    great read.
-  </span>
-</motion.h2>
+          <h2 className="mt-4 max-w-md text-[25px] font-bold leading-[1.08] tracking-[-0.045em] text-white sm:text-3xl">
+            Discover your next
+            <span className="text-indigo-300"> great read.</span>
+          </h2>
 
           <p className="mt-3 max-w-sm text-xs leading-5 text-slate-300 sm:text-sm">
             Browse the Libro collection, reserve a book, and keep your reading
@@ -506,7 +482,7 @@ export function StudentDashboard() {
 
           <StatCard
             label="Pending fines"
-            value={"\u20B9" + pendingFineAmount}
+            value={`₹${pendingFineAmount}`}
             icon={WalletCards}
             tone={pendingFineAmount > 0 ? "rose" : "violet"}
           />
@@ -516,6 +492,152 @@ export function StudentDashboard() {
       {/* ================================================================ */}
       {/* CONTENT WILL CONTINUE IN PART 2                                  */}
       {/* ================================================================ */}
+    </motion.div>
+  );
+}
+function StatCard({ label, value, icon: Icon, tone }) {
+  const shouldReduceMotion = useReducedMotion();
+
+  const tones = {
+    indigo: "bg-indigo-50 text-indigo-600 ring-indigo-100",
+    violet: "bg-violet-50 text-violet-600 ring-violet-100",
+    amber: "bg-amber-50 text-amber-600 ring-amber-100",
+    emerald: "bg-emerald-50 text-emerald-600 ring-emerald-100",
+    rose: "bg-rose-50 text-rose-600 ring-rose-100",
+  };
+
+  return (
+    <motion.div
+      variants={softItemVariants}
+      whileHover={
+        shouldReduceMotion
+          ? undefined
+          : {
+              y: -3,
+            }
+      }
+      whileTap={
+        shouldReduceMotion
+          ? undefined
+          : {
+              scale: 0.985,
+            }
+      }
+      className="group rounded-[20px] border border-slate-200/80 bg-white p-4 shadow-[0_6px_22px_rgba(15,23,42,0.035)] transition-shadow hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)] sm:p-5"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-[11px] font-medium text-slate-400">
+            {label}
+          </p>
+
+          <motion.p
+            initial={
+              shouldReduceMotion
+                ? false
+                : {
+                    opacity: 0,
+                    y: 5,
+                  }
+            }
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            transition={{
+              duration: 0.45,
+              ease,
+              delay: 0.15,
+            }}
+            className="mt-2 text-[25px] font-bold tracking-[-0.055em] text-slate-950"
+          >
+            {value}
+          </motion.p>
+        </div>
+
+        <span
+          className={[
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ring-1 transition-transform duration-200 group-hover:scale-105",
+            tones[tone],
+          ].join(" ")}
+        >
+          <Icon className="h-[17px] w-[17px]" strokeWidth={1.9} />
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+function ErrorState({ error, onRetry }) {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center px-4">
+      <motion.div
+        initial={
+          shouldReduceMotion
+            ? false
+            : {
+                opacity: 0,
+                y: 14,
+              }
+        }
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        className="w-full max-w-md rounded-[28px] border border-rose-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
+      >
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+          <TriangleAlert className="h-5 w-5" />
+        </div>
+
+        <h2 className="mt-5 text-lg font-bold text-slate-950">
+          We couldn't load your dashboard
+        </h2>
+
+        <p className="mt-2 text-sm leading-6 text-slate-500">{error}</p>
+
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white transition hover:bg-indigo-700 active:scale-[0.98]"
+        >
+          Try again
+          <ArrowRight className="h-3.5 w-3.5" />
+        </button>
+      </motion.div>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="animate-pulse pb-8">
+      <div className="mb-5">
+        <div className="h-2.5 w-24 rounded-full bg-slate-200" />
+
+        <div className="mt-3 h-8 w-56 rounded-xl bg-slate-200" />
+
+        <div className="mt-2 h-3 w-72 rounded-full bg-slate-100" />
+      </div>
+
+      <div className="h-[260px] rounded-[28px] bg-slate-200 sm:h-56" />
+
+      <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((item) => (
+          <div key={item} className="h-[108px] rounded-[20px] bg-slate-100" />
+        ))}
+      </div>
+
+      <div className="mt-6 grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
+        <div className="h-80 rounded-[24px] bg-slate-100" />
+
+        <div className="h-80 rounded-[24px] bg-slate-100" />
+      </div>
+    </div>
+  );
+}
 {
   /* ================================================================ */
 }
@@ -705,7 +827,7 @@ export function StudentDashboard() {
                 reservation.book?._id &&
                 navigate(`/student/catalog/${reservation.book._id}`)
               }
-              className="group flex w-full items-center gap-3 p-4 text-left transition-colors duration-200 hover:bg-slate-50/70 active:bg-slate-50 sm:gap-4 sm:p-5"
+              className="flex w-full items-center gap-3 p-4 text-left transition-colors sm:p-5"
             >
               <motion.div
                 whileHover={
@@ -716,7 +838,7 @@ export function StudentDashboard() {
                       }
                 }
                 className={[
-                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-[15px] transition-transform duration-200 group-hover:scale-105",
+                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl",
                   isReady
                     ? "bg-emerald-50 text-emerald-600"
                     : "bg-indigo-50 text-indigo-600",
@@ -730,11 +852,11 @@ export function StudentDashboard() {
               </motion.div>
 
               <div className="min-w-0 flex-1">
-                <p className="line-clamp-2 text-[13px] font-bold leading-5 text-slate-900 sm:text-sm">
+                <p className="truncate text-sm font-bold text-slate-900">
                   {reservation.book?.title || "Reserved book"}
                 </p>
 
-                <p className="mt-1 line-clamp-1 text-[11px] text-slate-400 sm:text-xs">
+                <p className="mt-1 truncate text-xs text-slate-400">
                   {isReady
                     ? "Ready for pickup"
                     : position
@@ -745,13 +867,13 @@ export function StudentDashboard() {
 
               <span
                 className={[
-                  "shrink-0 rounded-full px-2.5 py-1.5 text-[10px] font-bold sm:px-3",
+                  "shrink-0 rounded-full px-3 py-1.5 text-[10px] font-bold",
                   isReady
                     ? "bg-emerald-50 text-emerald-700"
                     : "bg-indigo-50 text-indigo-700",
                 ].join(" ")}
               >
-                {isReady ? "Ready" : `#${position || "â€”"}`}
+                {isReady ? "Ready" : `#${position || "—"}`}
               </span>
 
               <ChevronRight className="hidden h-4 w-4 text-slate-300 sm:block" />
@@ -862,153 +984,6 @@ export function StudentDashboard() {
     </motion.span>
   </div>
 </motion.section>;
-
-    </motion.div>
-  );
-}
-function StatCard({ label, value, icon: Icon, tone }) {
-  const shouldReduceMotion = useReducedMotion();
-
-  const tones = {
-    indigo: "bg-indigo-50 text-indigo-600 ring-indigo-100",
-    violet: "bg-violet-50 text-violet-600 ring-violet-100",
-    amber: "bg-amber-50 text-amber-600 ring-amber-100",
-    emerald: "bg-emerald-50 text-emerald-600 ring-emerald-100",
-    rose: "bg-rose-50 text-rose-600 ring-rose-100",
-  };
-
-  return (
-    <motion.div
-      variants={softItemVariants}
-      whileHover={
-        shouldReduceMotion
-          ? undefined
-          : {
-              y: -3,
-            }
-      }
-      whileTap={
-        shouldReduceMotion
-          ? undefined
-          : {
-              scale: 0.985,
-            }
-      }
-      className="group relative min-h-[112px] overflow-hidden rounded-[20px] border border-slate-200/80 bg-white p-4 shadow-[0_6px_22px_rgba(15,23,42,0.035)] transition-[border-color,box-shadow] duration-300 hover:border-indigo-100 hover:shadow-[0_14px_32px_rgba(15,23,42,0.07)] sm:min-h-[118px] sm:p-5"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="min-h-[2rem] pr-1 text-[11px] font-semibold leading-4 text-slate-400 sm:min-h-0">
-            {label}
-          </p>
-
-          <motion.p
-            initial={
-              shouldReduceMotion
-                ? false
-                : {
-                    opacity: 0,
-                    y: 5,
-                  }
-            }
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              duration: 0.45,
-              ease,
-              delay: 0.15,
-            }}
-            className="mt-1.5 text-[26px] font-bold leading-none tracking-[-0.055em] text-slate-950 sm:mt-2 sm:text-[28px]"
-          >
-            {value}
-          </motion.p>
-        </div>
-
-        <span
-          className={[
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] ring-1 transition-transform duration-300 group-hover:scale-105 sm:h-10 sm:w-10 sm:rounded-2xl",
-            tones[tone],
-          ].join(" ")}
-        >
-          <Icon className="h-[17px] w-[17px]" strokeWidth={1.9} />
-        </span>
-      </div>
-    </motion.div>
-  );
-}
-
-function ErrorState({ error, onRetry }) {
-  const shouldReduceMotion = useReducedMotion();
-
-  return (
-    <div className="flex min-h-[60vh] items-center justify-center px-4">
-      <motion.div
-        initial={
-          shouldReduceMotion
-            ? false
-            : {
-                opacity: 0,
-                y: 14,
-              }
-        }
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        className="w-full max-w-md rounded-[28px] border border-rose-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
-      >
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
-          <TriangleAlert className="h-5 w-5" />
-        </div>
-
-        <h2 className="mt-5 text-lg font-bold text-slate-950">
-          We couldn't load your dashboard
-        </h2>
-
-        <p className="mt-2 text-sm leading-6 text-slate-500">{error}</p>
-
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white transition hover:bg-indigo-700 active:scale-[0.98]"
-        >
-          Try again
-          <ArrowRight className="h-3.5 w-3.5" />
-        </button>
-      </motion.div>
-    </div>
-  );
-}
-
-function DashboardSkeleton() {
-  return (
-    <div className="animate-pulse pb-8">
-      <div className="mb-5">
-        <div className="h-2.5 w-24 rounded-full bg-slate-200" />
-
-        <div className="mt-3 h-8 w-56 rounded-xl bg-slate-200" />
-
-        <div className="mt-2 h-3 w-72 rounded-full bg-slate-100" />
-      </div>
-
-      <div className="h-[260px] rounded-[28px] bg-slate-200 sm:h-56" />
-
-      <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {[1, 2, 3, 4].map((item) => (
-          <div key={item} className="h-[108px] rounded-[20px] bg-slate-100" />
-        ))}
-      </div>
-
-      <div className="mt-6 grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
-        <div className="h-80 rounded-[24px] bg-slate-100" />
-
-        <div className="h-80 rounded-[24px] bg-slate-100" />
-      </div>
-    </div>
-  );
-}
 function SectionHeader({
   eyebrow,
   title,
@@ -1080,7 +1055,7 @@ function BorrowedBook({ loan, onView }) {
               backgroundColor: "#fafafa",
             }
       }
-      className="group flex gap-3.5 p-4 transition-[background-color,box-shadow] duration-300 hover:bg-slate-50/70 sm:gap-4 sm:p-5"
+      className="group flex gap-4 p-4 transition-colors sm:p-5"
     >
       <motion.div
         whileHover={
@@ -1095,7 +1070,7 @@ function BorrowedBook({ loan, onView }) {
           duration: 0.2,
           ease,
         }}
-        className="relative flex h-[92px] w-[62px] shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-[0_10px_24px_rgba(79,70,229,0.16)] sm:h-24 sm:w-[66px]"
+        className="relative flex h-24 w-[66px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-[0_8px_18px_rgba(79,70,229,0.15)]"
       >
         {cover ? (
           <img
@@ -1116,9 +1091,9 @@ function BorrowedBook({ loan, onView }) {
       <div className="min-w-0 flex-1">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <p className="line-clamp-2 text-[13px] font-bold leading-5 text-slate-900 sm:text-sm">{title}</p>
+            <p className="truncate text-sm font-bold text-slate-900">{title}</p>
 
-            <p className="mt-1 line-clamp-1 text-[11px] text-slate-400 sm:text-xs">{author}</p>
+            <p className="mt-1 truncate text-xs text-slate-400">{author}</p>
           </div>
 
           <span
@@ -1174,7 +1149,7 @@ function BorrowedBook({ loan, onView }) {
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-between gap-2 sm:gap-3">
+        <div className="mt-3 flex items-center justify-between gap-3">
           <span
             className={[
               "flex min-w-0 items-center gap-1.5 text-[10px]",
@@ -1188,7 +1163,7 @@ function BorrowedBook({ loan, onView }) {
           <button
             type="button"
             onClick={onView}
-            className="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-2 text-[10px] font-bold text-indigo-600 transition-colors hover:bg-indigo-50 hover:text-indigo-700 active:scale-[0.97] sm:h-auto sm:px-0 sm:hover:bg-transparent"
+            className="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold text-indigo-600 transition-colors hover:text-indigo-700"
           >
             Details
             <ChevronRight className="h-3 w-3" />
@@ -1306,7 +1281,7 @@ function RecommendationCard({ book, onView, index }) {
             {book.title}
           </h3>
 
-          <p className="mt-1 line-clamp-1 text-[11px] text-slate-400 sm:text-xs">
+          <p className="mt-1 truncate text-xs text-slate-400">
             {book.author || "Unknown author"}
           </p>
         </div>
@@ -1399,7 +1374,7 @@ function calculateLoanProgress(loan) {
 
 function formatDate(date) {
   if (!date) {
-    return "â€”";
+    return "—";
   }
 
   return new Date(date).toLocaleDateString("en-IN", {
@@ -1438,18 +1413,3 @@ function formatRelativeTime(date) {
 
   return formatDate(date);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

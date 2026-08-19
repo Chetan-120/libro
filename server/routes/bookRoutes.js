@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 
 const upload = require("../middleware/uploadMiddleware");
 const { protect, authorize } = require("../middleware/authMiddleware");
@@ -20,6 +20,12 @@ const router = express.Router();
  *
  * Authenticated students and librarians can view books.
  */
+
+/*
+ * Public read-only books endpoint for the landing page.
+ * The normal /api/books endpoint remains protected.
+ */
+router.get("/public", getBooks);
 
 router.get("/", protect, getBooks);
 
@@ -55,3 +61,4 @@ router.put(
 router.delete("/:id", protect, authorize("librarian"), deleteBook);
 
 module.exports = router;
+
